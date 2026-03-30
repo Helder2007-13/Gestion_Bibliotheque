@@ -11,24 +11,22 @@ def connecter_db(self):
                 database='gestion_bibliothèque'
             )
             
-            # Message dans la console pour le débogage
+            
             print("Connexion réussie à MySQL !")
             
-            # Optionnel : Si tu veux vraiment voir le message s'afficher à l'écran
-            # Note : Si tu l'appelles dans le __init__, cela confirmera que l'appli est prête.
-            # messagebox.showinfo("Succès", "Connexion à la base de données réussie")
+           
             
             return bibliotheque
 
         except pymysql.MySQLError as e:
-            # En cas d'erreur (serveur XAMPP éteint, base inexistante, etc.)
+            
             print(f"Erreur lors de la connexion : {e}")
             messagebox.showerror("Erreur de Connexion", f"Impossible de se connecter à la base de données :\n{e}")
             return None
 
 class ApplicationBibliotheque:
         def __init__(self, root):
-            print("Démarrage de l'application...") # Ajoute ça
+            print("Démarrage de l'application...") 
             self.root = root
             self.root.title("Système de Gestion de Bibliothèque")
             self.root.geometry("800x600")
@@ -55,7 +53,7 @@ class ApplicationBibliotheque:
                 self.db = self.connecter_db()
                 print("Connexion OK")
                 
-                # On essaie de construire l'interface
+               
                 self.construire_tab_livre()
                 self.construire_tab_abonne()
                 self.construire_tab_emprunt()
@@ -75,7 +73,7 @@ class ApplicationBibliotheque:
             ) 
                 
         def construire_tab_livre(self):
-            # On place ici les labels et entrées spécifiques aux livres
+           
             tk.Label(self.tab_livre, text="Gestion du Stock de Livres", font=("Arial", 14)).pack(pady=10)
             
                 # --- ZONE DE SAISIE (Frame) ---
@@ -100,21 +98,21 @@ class ApplicationBibliotheque:
 
             tk.Label(frame_saisie, text="Disponible (1=Oui / 0=Non) :").grid(row=4, column=0, padx=5, pady=5)
             self.ent_dispo = tk.Entry(frame_saisie, width=30)
-            self.ent_dispo.insert(0, "1") # Valeur par défaut
+            self.ent_dispo.insert(0, "1") 
             self.ent_dispo.grid(row=4, column=1, padx=5, pady=5)
 
                # --- ZONE DES BOUTONS ---
-            # 1. On crée le cadre et on le stocke dans 'self.frame_boutons'
+            
             self.frame_boutons = tk.Frame(self.tab_livre)
             self.frame_boutons.pack(pady=15)
 
-            # 2. On utilise 'self.frame_boutons' pour TOUS les boutons (avec le "self.")
+            
             tk.Button(self.frame_boutons, text="➕ Insérer", bg="#28a745", fg="white", width=12, command=self.inserer_livre).grid(row=0, column=0, padx=5)
             tk.Button(self.frame_boutons, text="📝 Modifier", bg="#ffc107", width=12, command=self.modifier_livre).grid(row=0, column=1, padx=5)
             tk.Button(self.frame_boutons, text="🗑️ Supprimer", bg="#dc3545", fg="white", width=12, command=self.supprimer_livre).grid(row=0, column=2, padx=5)
             tk.Button(self.frame_boutons, text="🔍 Rechercher", bg="#17a2b8", fg="white", width=12, command=self.rechercher_livre).grid(row=0, column=3, padx=5)
             
-            # 3. On ajoute enfin le bouton actualiser
+           
             self.btn_actualiser = tk.Button(self.frame_boutons, text="🔄 Actualiser", bg="#6c757d", fg="white", width=12, command=self.actualiser_champs_livre)
             self.btn_actualiser.grid(row=0, column=4, padx=5)
 
@@ -127,7 +125,7 @@ class ApplicationBibliotheque:
             colonnes = ("id", "nom", "prenom", "adresse", "telephone", "email", "date")
             self.arbre_livre = ttk.Treeview(frame_liste, columns=colonnes, show="headings")
 
-            # Noms des en-têtes
+            
             self.arbre_livre.heading("id", text="ID")
             self.arbre_livre.heading("nom", text="Titre")
             self.arbre_livre.heading("prenom", text="Auteur")
@@ -136,14 +134,14 @@ class ApplicationBibliotheque:
             self.arbre_livre.heading("email", text="Disponible")
             self.arbre_livre.heading("date", text="Date Inscription")
 
-            # Taille des colonnes
+            
             self.arbre_livre.column("id", width=50)
             self.arbre_livre.column("nom", width=100)
             self.arbre_livre.column("prenom", width=100)
             
             self.arbre_livre.pack(fill=tk.BOTH, expand=True)
 
-            # Charger les données au démarrage
+            
             self.afficher_livres()
 
             self.arbre_livre.bind("<Double-1>", self.selectionner_livre)
@@ -190,23 +188,37 @@ class ApplicationBibliotheque:
             if t == "" or a == "":
                 messagebox.showwarning("Erreur", "Veuillez modifier au moins le Titre ou l'Auteur")
                 return
+             
+            if not hasattr(self, 'current_id') or self.current_id is None:
+                messagebox.showwarning("Erreur", "Veuillez d'abord rechercher ou sélectionner un livre")
+                return   
             
             try:
-                db = self.connecter_db()
-                cursor = db.cursor()
-                    # On change les infos du livre dont le titre correspond à celui saisi
-                sql = "UPDATE livre SET titre = %s, auteur = %s, categorie = %s, annee_publication = %s, disponible = %s WHERE titre = %s"
+                    db = self.connecter_db()
+                    cursor = db.cursor()
 
-                # On passe les nouvelles valeurs (t, a, g) et on utilise 't' pour identifier la ligne à modifier
-                valeurs = (t, a, g, an, d, t) 
+                    
+                    sql = "UPDATE livre SET titre = %s, auteur = %s, categorie = %s, annee_publication = %s, disponible = %s WHERE id_Livre = %s"
 
-                cursor.execute(sql, valeurs)
-                db.commit()
-                messagebox.showinfo("Succès", "Livre modifié !")
-                db.close()
+                    
+                    id_du_livre = self.current_id 
+
+                    
+                    valeurs = (t, a, g, an, d, int(self.current_id)) 
+
+                    cursor.execute(sql, valeurs)
+                    
+                   
+                    if cursor.rowcount > 0:
+                        db.commit()
+                        messagebox.showinfo("Succès", "Livre modifié avec succès !")
+                    else:
+                        messagebox.showwarning("Attention", "Aucun livre trouvé avec cet ID.")
+
+                    db.close()
+
             except Exception as e:
-                messagebox.showerror("Erreur", str(e))
-
+                    messagebox.showerror("Erreur", str(e))
         def rechercher_livre(self):
             criteres = {
                 "titre": self.ent_titre.get().strip(),
@@ -228,29 +240,31 @@ class ApplicationBibliotheque:
                 messagebox.showwarning("Attention", "Veuillez remplir au moins un champ pour rechercher.")
                 return
                 # --- LOGIQUE DE MISE À JOUR DE L'INTERFACE ---
-            # 1. On vide le tableau (Treeview) pour afficher les résultats
+            
             for item in self.arbre_livre.get_children():
                 self.arbre_livre.delete(item)
 
             try:
                 db = self.connecter_db()
-                # CORRECTION 1 : buffered=True pour éviter "Unread result found"
+               
                 cursor = db.cursor()
                 
                 requete_sql = "SELECT id_Livre, titre, auteur, categorie, annee_publication, disponible, date_inscription FROM livre WHERE " + " AND ".join(filtres)
                 
                 cursor.execute(requete_sql, valeurs)
-                resultat = cursor.fetchall() # On prend TOUT (au cas où il y a des homonymes)
+                resultat = cursor.fetchall() 
 
                 if resultat:
-                    # 2. On remplit le tableau avec les résultats
+                    self.current_id = resultat[0] 
+                    
                     for ligne in resultat:
                         self.arbre_livre.insert("", tk.END, values=ligne)
-                    premier = resultat[0]
-                    # On vide tout
+                    premier = resultat[0] 
+                    self.current_id = premier[0] 
+                    
                     
                     self.ent_titre.delete(0, tk.END)
-                    self.ent_titre.insert(0, premier[1] or "") # Index 1 car 0 est l'ID
+                    self.ent_titre.insert(0, premier[1] or "") 
                     self.ent_auteur.delete(0, tk.END)
                     self.ent_auteur.insert(0, premier[2] or "")
                     self.ent_annee.delete(0, tk.END)
@@ -265,37 +279,36 @@ class ApplicationBibliotheque:
                 else:
                     messagebox.showwarning("Introuvable", "Aucun livre ne correspond.")
                     
-                cursor.close() # Bonne pratique : on ferme le curseur
+                cursor.close() 
                 db.close()
             except Exception as e:
                 messagebox.showerror("Erreur SQL", f"Détails : {str(e)}")
 
         def actualiser_champs_livre(self):
-            # 1. On vide tous les champs de saisie (Entry)
+           
             self.ent_titre.delete(0, tk.END)
             self.ent_auteur.delete(0, tk.END)
             self.ent_genre.delete(0, tk.END)
             self.ent_annee.delete(0, tk.END)
             self.ent_dispo.delete(0, tk.END)
             
-            if hasattr(self, 'ent_date'): # Au cas où vous l'auriez gardé
+            if hasattr(self, 'ent_date'): 
                  self.ent_date.delete(0, tk.END)
 
-            # 2. TRÈS IMPORTANT : On recharge TOUTE la liste depuis la base de données
-            # Cela "annule" la recherche précédente.
+           
             
             self.afficher_livres()
         
         def afficher_livres(self):
-            # 1. On vide le tableau actuel dans l'interface
+           
             for item in self.arbre_livre.get_children():
                 self.arbre_livre.delete(item)
-            conn = None # On initialise à vide pour éviter les erreurs de fermeture
-            # 2. Connexion et lecture dans la base de données
+            conn = None 
+           
             try:
                 conn = self.connecter_db()
                 curseur = conn.cursor()
-                # Remplace 'abonnes' par le nom exact de ta table MySQL
+               
                 curseur.execute("SELECT id_Livre, titre, auteur, annee_publication, categorie, disponible, date_inscription FROM livre")
                 lignes = curseur.fetchall()
 
@@ -303,50 +316,49 @@ class ApplicationBibliotheque:
                     self.arbre_livre.insert("", tk.END, values=ligne)
                 curseur.close()
                 conn.close()
-            except pymysql.MySQLError as err: # Correction du nom de l'erreur
+            except pymysql.MySQLError as err: 
                messagebox.showerror("Erreur SQL", f"Impossible de lire les livres : {err}")
             
             finally:
-                # Sécurité : on ferme si la connexion est restée ouverte par erreur
+              
                 if conn and conn.open:
                     conn.close()
                 
 
         def selectionner_livre(self, event):
-             # 1. On récupère la sélection
+             
             selection = self.arbre_livre.selection()
-            # 1. On récupère la ligne cliquée
+           
             if selection:
                 item_selectionne = selection[0]
                 valeurs = self.arbre_livre.item(item_selectionne, 'values')
                 if valeurs:
-                    # 2. On vide les cases
+                    
                     self.ent_titre.delete(0, tk.END)
                     self.ent_auteur.delete(0, tk.END)
                     self.ent_genre.delete(0, tk.END)
                     self.ent_annee.delete(0, tk.END)
                     self.ent_dispo.delete(0, tk.END)
 
-                    # 3. On remplit les cases avec les infos de la ligne cliquée
-                    # Attention aux index : 1=Nom, 2=Prénom, 3=Adresse, etc.
+                   
                     self.ent_titre.insert(0, valeurs[1]) 
                     self.ent_auteur.insert(0, valeurs[2])
-                    self.ent_annee.insert(0, valeurs[3]) # Changé de 4 à 3
-                    self.ent_genre.insert(0, valeurs[4]) # Changé de 3 à 4
+                    self.ent_annee.insert(0, valeurs[3]) 
+                    self.ent_genre.insert(0, valeurs[4]) 
                     self.ent_dispo.insert(0, valeurs[5])
 
-                    # Astuce : On peut stocker l'ID dans une variable cachée pour la modification
-                    self.id_selectionne = valeurs[0]
+                    
+                    self.current_id = valeurs[0]
             
                         
             else:
-            # Optionnel : on ne fait rien ou on affiche un petit message en console
+            
                 print("Clic dans le vide (aucune ligne sélectionnée)")
 
             
          
         def construire_tab_emprunt(self):
-            # On place ici les labels et entrées spécifiques aux emprunts
+            
             tk.Label(self.tab_emprunt, text="Gestion des emprunts", font=("Arial", 14)).pack(pady=10)
             
 
@@ -374,29 +386,29 @@ class ApplicationBibliotheque:
 
 
               # --- ZONE DES BOUTONS ---
-            # 1. On crée le cadre et on le stocke dans 'self.frame_boutons'
+            
             self.frame_boutons = tk.Frame(self.tab_emprunt)
             self.frame_boutons.pack(pady=15)
 
-            # 2. On utilise 'self.frame_boutons' pour TOUS les boutons (avec le "self.")
+            
             tk.Button(self.frame_boutons, text="➕ Insérer", bg="#28a745", fg="white", width=12, command=self.inserer_emprunt).grid(row=0, column=0, padx=5)
             tk.Button(self.frame_boutons, text="📝 Modifier", bg="#ffc107", width=12, command=self.modifier_emprunt).grid(row=0, column=1, padx=5)
             tk.Button(self.frame_boutons, text="🗑️ Supprimer", bg="#dc3545", fg="white", width=12, command=self.supprimer_emprunt).grid(row=0, column=2, padx=5)
             tk.Button(self.frame_boutons, text="🔍 Rechercher", bg="#17a2b8", fg="white", width=12, command=self.rechercher_emprunt).grid(row=0, column=3, padx=5)
             
-            # 3. On ajoute enfin le bouton actualiser
+            
             self.btn_actualiser = tk.Button(self.frame_boutons, text="🔄 Actualiser", bg="#6c757d", fg="white", width=12, command=self.actualiser_champs_emprunt)
             self.btn_actualiser.grid(row=0, column=4, padx=5)
 
-             # Conteneur pour le tableau
+             
             frame_liste = tk.Frame(self.tab_emprunt)
             frame_liste.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
 
-            # Définition des colonnes
+            
             colonnes = ("id", "nom", "prenom", "adresse", "telephone", "email", "date")
             self.arbre_emprunt = ttk.Treeview(frame_liste, columns=colonnes, show="headings")
 
-            # Noms des en-têtes
+           
             self.arbre_emprunt.heading("id", text="ID")
             self.arbre_emprunt.heading("nom", text="Num_Abonné")
             self.arbre_emprunt.heading("prenom", text="Num_Livre")
@@ -404,14 +416,14 @@ class ApplicationBibliotheque:
             self.arbre_emprunt.heading("telephone", text="Date_Retour")
             self.arbre_emprunt.heading("email", text="Date_Limite")
             
-            # Taille des colonnes
+            
             self.arbre_emprunt.column("id", width=50)
             self.arbre_emprunt.column("nom", width=100)
             self.arbre_emprunt.column("prenom", width=100)
             
             self.arbre_emprunt.pack(fill=tk.BOTH, expand=True)
 
-            # Charger les données au démarrage
+            
             self.afficher_emprunts()
 
             self.arbre_emprunt.bind("<Double-1>", self.selectionner_emprunt)
@@ -459,19 +471,32 @@ class ApplicationBibliotheque:
             if t == "" or a == "":
                 messagebox.showwarning("Erreur", "Veuillez modifier au moins une case")
                 return
+            if not hasattr(self, 'current_id') or self.current_id is None:
+                messagebox.showwarning("Erreur", "Veuillez d'abord rechercher ou sélectionner un livre")
+                return     
             
             try:
                 db = self.connecter_db()
                 cursor = db.cursor()
-                    # On change les infos du livre dont le titre correspond à celui saisi
-                sql = "UPDATE emprunt SET id_abonne = %s, id_Livre = %s, date_retour = %s, date_limite = %s  WHERE id_abonne = %s"
+               
+                    
+                sql = "UPDATE emprunt SET id_abonne = %s, id_Livre = %s, date_retour = %s, date_limite = %s  WHERE id_emprunt = %s"
 
-                # On passe les nouvelles valeurs (t, a, g) et on utilise 't' pour identifier la ligne à modifier
-                valeurs = (t, a, an, d, t) 
+                
+                id_de_emprunt = self.current_id
+
+              
+                valeurs = (t, a, an, d, int(self.current_id)) 
 
                 cursor.execute(sql, valeurs)
-                db.commit()
-                messagebox.showinfo("Succès", "Emprunt modifié !")
+                    
+                   
+                if cursor.rowcount > 0:
+                   db.commit()
+                   messagebox.showinfo("Succès", "Emprunt modifié avec succès !")
+                else:
+                     messagebox.showwarning("Attention", "Aucun emprunt trouvé avec cet ID.")
+
                 db.close()
             except Exception as e:
                 messagebox.showerror("Erreur", str(e))
@@ -496,29 +521,31 @@ class ApplicationBibliotheque:
                 messagebox.showwarning("Attention", "Veuillez remplir au moins un champ pour rechercher.")
                 return
                 # --- LOGIQUE DE MISE À JOUR DE L'INTERFACE ---
-            # 1. On vide le tableau (Treeview) pour afficher les résultats
+            
             for item in self.arbre_emprunt.get_children():
                 self.arbre_emprunt.delete(item)
 
             try:
                 db = self.connecter_db()
-                # CORRECTION 1 : buffered=True pour éviter "Unread result found"
+                
                 cursor = db.cursor()
                 
                 requete_sql = "SELECT id_emprunt, id_abonne, id_Livre, date_emprunt, date_retour, date_limite  FROM emprunt WHERE " + " AND ".join(filtres)
                 
                 cursor.execute(requete_sql, valeurs)
-                resultat = cursor.fetchall() # On prend TOUT (au cas où il y a des homonymes)
+                resultat = cursor.fetchall() 
 
                 if resultat:
-                    # 2. On remplit le tableau avec les résultats
+                    self.current_id = resultat[0] 
+                    
                     for ligne in resultat:
                         self.arbre_emprunt.insert("", tk.END, values=ligne)
-                    premier = resultat[0]
-                    # On vide tout
+                    premier = resultat[0] 
+                    self.current_id = premier[0] 
+                   
                     
                     self.ent_titre1.delete(0, tk.END)
-                    self.ent_titre1.insert(0, premier[1] or "") # Index 1 car 0 est l'ID
+                    self.ent_titre1.insert(0, premier[1] or "") 
                     self.ent_auteur1.delete(0, tk.END)
                     self.ent_auteur1.insert(0, premier[2] or "")
                     self.ent_annee1.delete(0, tk.END)
@@ -531,36 +558,35 @@ class ApplicationBibliotheque:
                 else:
                     messagebox.showwarning("Introuvable", "Aucun emprunt ne correspond.")
                     
-                cursor.close() # Bonne pratique : on ferme le curseur
+                cursor.close()
                 db.close()
             except Exception as e:
                 messagebox.showerror("Erreur SQL", f"Détails : {str(e)}")
 
         def actualiser_champs_emprunt(self):
-            # 1. On vide tous les champs de saisie (Entry)
+            
             self.ent_titre1.delete(0, tk.END)
             self.ent_auteur1.delete(0, tk.END)
             self.ent_annee1.delete(0, tk.END)
             self.ent_dispo1.delete(0, tk.END)
             
-            if hasattr(self, 'ent_date'): # Au cas où vous l'auriez gardé
+            if hasattr(self, 'ent_date'): 
                  self.ent_date.delete(0, tk.END)
 
-            # 2. TRÈS IMPORTANT : On recharge TOUTE la liste depuis la base de données
-            # Cela "annule" la recherche précédente.
+            
             
             self.afficher_emprunts()
         
         def afficher_emprunts(self):
-            # 1. On vide le tableau actuel dans l'interface
+           
             for item in self.arbre_emprunt.get_children():
                 self.arbre_emprunt.delete(item)
 
-            # 2. Connexion et lecture dans la base de données
+            
             try:
                 conn = self.connecter_db()
                 curseur = conn.cursor()
-                # Remplace 'abonnes' par le nom exact de ta table MySQL
+                
                 curseur.execute("SELECT id_emprunt, id_abonne, id_Livre, date_emprunt, date_retour, date_limite FROM emprunt")
                 lignes = curseur.fetchall()
 
@@ -572,42 +598,41 @@ class ApplicationBibliotheque:
                 print(f"Erreur SQL : {err}")
             
             finally:
-                # Sécurité : on ferme si la connexion est restée ouverte par erreur
+                
                 if conn and conn.open:
                     conn.close()    
 
         def selectionner_emprunt(self, event):
-            # 1. On récupère la sélection
+            
             selection = self.arbre_emprunt.selection()
-            # 1. On récupère la ligne cliquée
+            
             if selection:
                 item_selectionne = selection[0]
                 valeurs = self.arbre_emprunt.item(item_selectionne, 'values')
                 if valeurs:
-                    # 2. On vide les cases
+                   
                     self.ent_titre1.delete(0, tk.END)
                     self.ent_auteur1.delete(0, tk.END)
                     self.ent_annee1.delete(0, tk.END)
                     self.ent_dispo1.delete(0, tk.END)
 
-                    # 3. On remplit les cases avec les infos de la ligne cliquée
-                    # Attention aux index : 1=Nom, 2=Prénom, 3=Adresse, etc.
+                    
                     self.ent_titre1.insert(0, valeurs[1]) 
                     self.ent_auteur1.insert(0, valeurs[2])
                     self.ent_annee1.insert(0, valeurs[4])
                     self.ent_dispo1.insert(0, valeurs[5])
 
-                    # Astuce : On peut stocker l'ID dans une variable cachée pour la modification
-                    self.id_selectionne = valeurs[0]
+                    
+                    self.current_id = valeurs[0]
             else:
-            # Optionnel : on ne fait rien ou on affiche un petit message en console
+            
                 print("Clic dans le vide (aucune ligne sélectionnée)")
 
                         
            
             
         def construire_tab_abonne(self):
-            # On place ici les labels et entrées spécifiques aux abonnés
+            
             tk.Label(self.tab_abonne, text="Gestion des abonnés", font=("Arial", 14)).pack(pady=10)
             
               # --- ZONE DE SAISIE (Frame) ---
@@ -636,21 +661,21 @@ class ApplicationBibliotheque:
             
 
                # --- ZONE DES BOUTONS ---
-            # 1. On crée le cadre et on le stocke dans 'self.frame_boutons'
+            
             self.frame_boutons = tk.Frame(self.tab_abonne)
             self.frame_boutons.pack(pady=15)
 
-            # 2. On utilise 'self.frame_boutons' pour TOUS les boutons (avec le "self.")
+            
             tk.Button(self.frame_boutons, text="➕ Insérer", bg="#28a745", fg="white", width=12, command=self.inserer_abonne).grid(row=0, column=0, padx=5)
             tk.Button(self.frame_boutons, text="📝 Modifier", bg="#ffc107", width=12, command=self.modifier_abonne).grid(row=0, column=1, padx=5)
             tk.Button(self.frame_boutons, text="🗑️ Supprimer", bg="#dc3545", fg="white", width=12, command=self.supprimer_abonne).grid(row=0, column=2, padx=5)
             tk.Button(self.frame_boutons, text="🔍 Rechercher", bg="#17a2b8", fg="white", width=12, command=self.rechercher_abonne).grid(row=0, column=3, padx=5)
             
-            # 3. On ajoute enfin le bouton actualiser
+            
             self.btn_actualiser = tk.Button(self.frame_boutons, text="🔄 Actualiser", bg="#6c757d", fg="white", width=12, command=self.actualiser_champs_abonne)
             self.btn_actualiser.grid(row=0, column=4, padx=5)
 
-                # Conteneur pour le tableau
+                
             frame_liste = tk.Frame(self.tab_abonne)
             frame_liste.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
 
@@ -658,7 +683,7 @@ class ApplicationBibliotheque:
             colonnes = ("id", "nom", "prenom", "adresse", "telephone", "email", "date")
             self.arbre_abonne = ttk.Treeview(frame_liste, columns=colonnes, show="headings")
 
-            # Noms des en-têtes
+            
             self.arbre_abonne.heading("id", text="ID")
             self.arbre_abonne.heading("nom", text="Nom")
             self.arbre_abonne.heading("prenom", text="Prénom")
@@ -667,14 +692,14 @@ class ApplicationBibliotheque:
             self.arbre_abonne.heading("email", text="Email")
             self.arbre_abonne.heading("date", text="Date Inscription")
 
-            # Taille des colonnes
+            
             self.arbre_abonne.column("id", width=50)
             self.arbre_abonne.column("nom", width=100)
             self.arbre_abonne.column("prenom", width=100)
             
             self.arbre_abonne.pack(fill=tk.BOTH, expand=True)
 
-            # Charger les données au démarrage
+            
             self.afficher_abonnes()
 
             self.arbre_abonne.bind("<Double-1>", self.selectionner_abonne)
@@ -721,19 +746,33 @@ class ApplicationBibliotheque:
             if t == "" or a == "":
                 messagebox.showwarning("Erreur", "Veuillez modifier au moins une case")
                 return
+            if not hasattr(self, 'current_id') or self.current_id is None:
+                messagebox.showwarning("Erreur", "Veuillez d'abord rechercher ou sélectionner un livre")
+                return   
+            
             
             try:
                 db = self.connecter_db()
                 cursor = db.cursor()
-                    # On change les infos du livre dont le titre correspond à celui saisi
-                sql = "UPDATE abonne SET nom = %s, prenom = %s, adresse = %s, tel = %s, email = %s WHERE nom = %s"
+                
+                    
+                sql = "UPDATE abonne SET nom = %s, prenom = %s, adresse = %s, tel = %s, email = %s WHERE id_abonne = %s"
 
-                # On passe les nouvelles valeurs (t, a, g) et on utilise 't' pour identifier la ligne à modifier
-                valeurs = (t, a, g, an, d, t) 
+                
+                id_de_abonne = self.current_id
+
+                
+                valeurs = (t, a, g, an, d, int(self.current_id)) 
 
                 cursor.execute(sql, valeurs)
-                db.commit()
-                messagebox.showinfo("Succès", "Abonné modifié !")
+                    
+                   
+                if cursor.rowcount > 0:
+                        db.commit()
+                        messagebox.showinfo("Succès", "Abonné modifié avec succès !")
+                else:
+                        messagebox.showwarning("Attention", "Aucun abonné trouvé avec cet ID.")
+
                 db.close()
             except Exception as e:
                 messagebox.showerror("Erreur", str(e))
@@ -759,29 +798,31 @@ class ApplicationBibliotheque:
                 messagebox.showwarning("Attention", "Veuillez remplir au moins un champ pour rechercher.")
                 return
                 # --- LOGIQUE DE MISE À JOUR DE L'INTERFACE ---
-            # 1. On vide le tableau (Treeview) pour afficher les résultats
+           
             for item in self.arbre_abonne.get_children():
                 self.arbre_abonne.delete(item)
 
             try:
                 db = self.connecter_db()
-                # CORRECTION 1 : buffered=True pour éviter "Unread result found"
+                
                 cursor = db.cursor()
                 
                 requete_sql = "SELECT id_abonne, nom, prenom, adresse, tel, email, date_inscription FROM abonne WHERE " + " AND ".join(filtres)
                 
                 cursor.execute(requete_sql, valeurs)
-                resultat = cursor.fetchall() # On prend TOUT (au cas où il y a des homonymes)
+                resultat = cursor.fetchall() 
 
                 if resultat:
-                    # 2. On remplit le tableau avec les résultats
+                    self.current_id = resultat[0]   
+                    
                     for ligne in resultat:
                         self.arbre_abonne.insert("", tk.END, values=ligne)
-                    premier = resultat[0]
-                    # On vide tout
+                    premier = resultat[0] 
+                    self.current_id = premier[0] 
+                    
                     
                     self.ent_titre2.delete(0, tk.END)
-                    self.ent_titre2.insert(0, premier[1] or "") # Index 1 car 0 est l'ID
+                    self.ent_titre2.insert(0, premier[1] or "") 
                     self.ent_auteur2.delete(0, tk.END)
                     self.ent_auteur2.insert(0, premier[2] or "")
                     self.ent_genre2.delete(0, tk.END)
@@ -796,37 +837,36 @@ class ApplicationBibliotheque:
                 else:
                     messagebox.showwarning("Introuvable", "Aucun abonné ne correspond.")
                     
-                cursor.close() # Bonne pratique : on ferme le curseur
+                cursor.close() 
                 db.close()
             except Exception as e:
                 messagebox.showerror("Erreur SQL", f"Détails : {str(e)}")
 
         def actualiser_champs_abonne(self):
-            # 1. On vide tous les champs de saisie (Entry)
+            
             self.ent_titre2.delete(0, tk.END)
             self.ent_auteur2.delete(0, tk.END)
             self.ent_genre2.delete(0, tk.END)
             self.ent_annee2.delete(0, tk.END)
             self.ent_dispo2.delete(0, tk.END)
             
-            if hasattr(self, 'ent_date'): # Au cas où vous l'auriez gardé
+            if hasattr(self, 'ent_date'): 
                  self.ent_date.delete(0, tk.END)
 
-            # 2. TRÈS IMPORTANT : On recharge TOUTE la liste depuis la base de données
-            # Cela "annule" la recherche précédente.
+           
             
             self.afficher_abonnes()
         
         def afficher_abonnes(self):
-            # 1. On vide le tableau actuel dans l'interface
+            
             for item in self.arbre_abonne.get_children():
                 self.arbre_abonne.delete(item)
 
-            # 2. Connexion et lecture dans la base de données
+            
             try:
                 conn = self.connecter_db()
                 curseur = conn.cursor()
-                # Remplace 'abonnes' par le nom exact de ta table MySQL
+               
                 curseur.execute("SELECT id_abonne, nom, prenom, adresse, tel, email, date_inscription FROM abonne")
                 lignes = curseur.fetchall()
 
@@ -838,43 +878,42 @@ class ApplicationBibliotheque:
                 print(f"Erreur SQL : {err}")
             
             finally:
-                # Sécurité : on ferme si la connexion est restée ouverte par erreur
+               
                 if conn and conn.open:
                     conn.close()    
 
         def selectionner_abonne(self, event):
-             # 1. On récupère la sélection
+            
             selection = self.arbre_abonne.selection()
-            # 1. On récupère la ligne cliquée
+           
             if selection:
                 item_selectionne = selection[0]
                 valeurs = self.arbre_abonne.item(item_selectionne, 'values')
                 if valeurs:
-                    # 2. On vide les cases
+                   
                     self.ent_titre2.delete(0, tk.END)
                     self.ent_auteur2.delete(0, tk.END)
                     self.ent_genre2.delete(0, tk.END)
                     self.ent_annee2.delete(0, tk.END)
                     self.ent_dispo2.delete(0, tk.END)
 
-                    # 3. On remplit les cases avec les infos de la ligne cliquée
-                    # Attention aux index : 1=Nom, 2=Prénom, 3=Adresse, etc.
+
                     self.ent_titre2.insert(0, valeurs[1]) 
                     self.ent_auteur2.insert(0, valeurs[2])
                     self.ent_genre2.insert(0, valeurs[3])
                     self.ent_annee2.insert(0, valeurs[4])
                     self.ent_dispo2.insert(0, valeurs[5])
 
-                    # Astuce : On peut stocker l'ID dans une variable cachée pour la modification
-                    self.id_selectionne = valeurs[0]
+                   
+                    self.current_id = valeurs[0]
             else:
-            # Optionnel : on ne fait rien ou on affiche un petit message en console
+           
                 print("Clic dans le vide (aucune ligne sélectionnée)")
 
            
             
         def construire_tab_admin(self):
-            # On place ici les labels et entrées spécifiques aux bibliothécaires
+           
             tk.Label(self.tab_admin, text="Gestion des bibliothécaires", font=("Arial", 14)).pack(pady=10)   
 
             
@@ -901,29 +940,29 @@ class ApplicationBibliotheque:
             
           
             # --- ZONE DES BOUTONS ---
-            # 1. On crée le cadre et on le stocke dans 'self.frame_boutons'
+            
             self.frame_boutons = tk.Frame(self.tab_admin)
             self.frame_boutons.pack(pady=15)
 
-            # 2. On utilise 'self.frame_boutons' pour TOUS les boutons (avec le "self.")
+            
             tk.Button(self.frame_boutons, text="➕ Insérer", bg="#28a745", fg="white", width=12, command=self.inserer_admin).grid(row=0, column=0, padx=5)
             tk.Button(self.frame_boutons, text="📝 Modifier", bg="#ffc107", width=12, command=self.modifier_admin).grid(row=0, column=1, padx=5)
             tk.Button(self.frame_boutons, text="🗑️ Supprimer", bg="#dc3545", fg="white", width=12, command=self.supprimer_admin).grid(row=0, column=2, padx=5)
             tk.Button(self.frame_boutons, text="🔍 Rechercher", bg="#17a2b8", fg="white", width=12, command=self.rechercher_admin).grid(row=0, column=3, padx=5)
             
-            # 3. On ajoute enfin le bouton actualiser
+            
             self.btn_actualiser = tk.Button(self.frame_boutons, text="🔄 Actualiser", bg="#6c757d", fg="white", width=12, command=self.actualiser_champs_admin)
             self.btn_actualiser.grid(row=0, column=4, padx=5)
 
-                # Conteneur pour le tableau
+               
             frame_liste = tk.Frame(self.tab_admin)
             frame_liste.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
 
-            # Définition des colonnes
+           
             colonnes = ("id", "nom", "prenom", "email", "telephone", "date")
             self.arbre_admin = ttk.Treeview(frame_liste, columns=colonnes, show="headings")
 
-            # Noms des en-têtes
+           
             self.arbre_admin.heading("id", text="ID")
             self.arbre_admin.heading("nom", text="Nom")
             self.arbre_admin.heading("prenom", text="Prénom")
@@ -931,14 +970,14 @@ class ApplicationBibliotheque:
             self.arbre_admin.heading("telephone", text="Téléphone")  
             self.arbre_admin.heading("date", text="Date Inscription")
 
-            # Taille des colonnes
+            
             self.arbre_admin.column("id", width=50)
             self.arbre_admin.column("nom", width=100)
             self.arbre_admin.column("prenom", width=100)
             
             self.arbre_admin.pack(fill=tk.BOTH, expand=True)
 
-            # Charger les données au démarrage
+           
             self.afficher_admins()
 
             self.arbre_admin.bind("<Double-1>", self.selectionner_admin)
@@ -985,19 +1024,32 @@ class ApplicationBibliotheque:
             if t == "" or a == "":
                 messagebox.showwarning("Erreur", "Veuillez modifier au moins une case")
                 return
+            if not hasattr(self, 'current_id') or self.current_id is None:
+                messagebox.showwarning("Erreur", "Veuillez d'abord rechercher ou sélectionner un livre")
+                return   
+            
             
             try:
                 db = self.connecter_db()
                 cursor = db.cursor()
-                    # On change les infos du livre dont le titre correspond à celui saisi
-                sql = "UPDATE bibliothécaire SET nom_Biblio = %s, prenom_Biblio = %s, email_Biblio = %s, tel_Biblio = %s  WHERE nom_Biblio = %s"
+                 
+                    
+                sql = "UPDATE bibliothécaire SET nom_Biblio = %s, prenom_Biblio = %s, email_Biblio = %s, tel_Biblio = %s  WHERE id_Biblio = %s"
 
-                # On passe les nouvelles valeurs (t, a, g) et on utilise 't' pour identifier la ligne à modifier
-                valeurs = (t, a, g, an, t) 
+              
+                id_de_admin = self.current_id        
+                
+                valeurs = (t, a, g, an, int(self.current_id)) 
 
                 cursor.execute(sql, valeurs)
-                db.commit()
-                messagebox.showinfo("Succès", "Bibliothécaire modifié !")
+                    
+                 
+                if cursor.rowcount > 0:
+                        db.commit()
+                        messagebox.showinfo("Succès", "Bibliothècaire modifié avec succès !")
+                else:
+                        messagebox.showwarning("Attention", "Aucun bibliothècaire trouvé avec cet ID.")
+
                 db.close()
             except Exception as e:
                 messagebox.showerror("Erreur", str(e))
@@ -1022,30 +1074,32 @@ class ApplicationBibliotheque:
             if not filtres:
                 messagebox.showwarning("Attention", "Veuillez remplir au moins un champ pour rechercher.")
                 return
-                # --- LOGIQUE DE MISE À JOUR DE L'INTERFACE ---
-            # 1. On vide le tableau (Treeview) pour afficher les résultats
+               
+           
             for item in self.arbre_admin.get_children():
                 self.arbre_admin.delete(item)
 
             try:
                 db = self.connecter_db()
-                # CORRECTION 1 : buffered=True pour éviter "Unread result found"
+                
                 cursor = db.cursor()
                 
                 requete_sql = "SELECT id_Biblio, nom_Biblio, prenom_Biblio, email_Biblio, tel_Biblio, date_inscription FROM bibliothécaire WHERE " + " AND ".join(filtres)
                 
                 cursor.execute(requete_sql, valeurs)
-                resultat = cursor.fetchall() # On prend TOUT (au cas où il y a des homonymes)
+                resultat = cursor.fetchall() 
 
                 if resultat:
-                    # 2. On remplit le tableau avec les résultats
+                    self.current_id = resultat[0]   
+                    
                     for ligne in resultat:
                         self.arbre_admin.insert("", tk.END, values=ligne)
-                    premier = resultat[0]
-                    # On vide tout
+                    premier = resultat[0] 
+                    self.current_id = premier[0] 
+                    
                     
                     self.ent_titre3.delete(0, tk.END)
-                    self.ent_titre3.insert(0, premier[1] or "") # Index 1 car 0 est l'ID
+                    self.ent_titre3.insert(0, premier[1] or "") 
                     self.ent_auteur3.delete(0, tk.END)
                     self.ent_auteur3.insert(0, premier[2] or "")
                     self.ent_genre3.delete(0, tk.END)
@@ -1058,37 +1112,36 @@ class ApplicationBibliotheque:
                 else:
                     messagebox.showwarning("Introuvable", "Aucun bibliothécaire ne correspond.")
                     
-                cursor.close() # Bonne pratique : on ferme le curseur
+                cursor.close() 
                 db.close()
             except Exception as e:
                 messagebox.showerror("Erreur SQL", f"Détails : {str(e)}")
 
         def actualiser_champs_admin(self):
-            # 1. On vide tous les champs de saisie (Entry)
+           
             self.ent_titre3.delete(0, tk.END)
             self.ent_auteur3.delete(0, tk.END)
             self.ent_genre3.delete(0, tk.END)
             self.ent_annee3.delete(0, tk.END)
             
             
-            if hasattr(self, 'ent_date'): # Au cas où vous l'auriez gardé
+            if hasattr(self, 'ent_date'): 
                  self.ent_date.delete(0, tk.END)
 
-            # 2. TRÈS IMPORTANT : On recharge TOUTE la liste depuis la base de données
-            # Cela "annule" la recherche précédente.
+           
             
             self.afficher_admins()
         
         def afficher_admins(self):
-            # 1. On vide le tableau actuel dans l'interface
+            
             for item in self.arbre_admin.get_children():
                 self.arbre_admin.delete(item)
 
-            # 2. Connexion et lecture dans la base de données
+            
             try:
                 conn = self.connecter_db()
                 curseur = conn.cursor()
-                # Remplace 'abonnes' par le nom exact de ta table MySQL
+                
                 curseur.execute("SELECT id_Biblio, nom_Biblio, prenom_Biblio, email_Biblio, tel_Biblio, date_inscription FROM bibliothécaire")
                 lignes = curseur.fetchall()
 
@@ -1100,37 +1153,36 @@ class ApplicationBibliotheque:
                 print(f"Erreur SQL : {err}")
             
             finally:
-                # Sécurité : on ferme si la connexion est restée ouverte par erreur
+               
                 if conn and conn.open:
                     conn.close()    
 
         def selectionner_admin(self, event):
-            # 1. On récupère la sélection
+           
             selection = self.arbre_admin.selection()
-            # 1. On récupère la ligne cliquée
+            
             if selection:
                 item_selectionne = selection[0]
                 valeurs = self.arbre_admin.item(item_selectionne, 'values')
                 if valeurs:
-                    # 2. On vide les cases
+                    
                     self.ent_titre3.delete(0, tk.END)
                     self.ent_auteur3.delete(0, tk.END)
                     self.ent_genre3.delete(0, tk.END)
                     self.ent_annee3.delete(0, tk.END)
                     
 
-                    # 3. On remplit les cases avec les infos de la ligne cliquée
-                    # Attention aux index : 1=Nom, 2=Prénom, 3=Adresse, etc.
+                    
                     self.ent_titre3.insert(0, valeurs[1]) 
                     self.ent_auteur3.insert(0, valeurs[2])
                     self.ent_genre3.insert(0, valeurs[3])
                     self.ent_annee3.insert(0, valeurs[4])
                     
 
-                    # Astuce : On peut stocker l'ID dans une variable cachée pour la modification
-                    self.id_selectionne = valeurs[0]
+                   
+                    self.current_id = valeurs[0]
             else:
-            # Optionnel : on ne fait rien ou on affiche un petit message en console
+            
                 print("Clic dans le vide (aucune ligne sélectionnée)")
 if __name__ == "__main__":
     root = tk.Tk()
@@ -1154,3 +1206,4 @@ if __name__ == "__main__":
 
 
         
+
